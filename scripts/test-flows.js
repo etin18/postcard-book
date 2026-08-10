@@ -111,6 +111,27 @@ const readCards = (page) =>
   check('展開時浮動 ＋ 收起來', await page.isHidden('#fab'));
   check('地址完整顯示',
     (await page.textContent('.addr')).includes('Roosevelt'));
+  check('展開時搜尋框不再浮動（會蓋住地址）',
+    await page.evaluate(() =>
+      document.querySelector('.searchbar').classList.contains('is-static')));
+  check('展開時其他人收起來',
+    await page.evaluate(() =>
+      document.getElementById('friend-list').classList.contains('is-focused')));
+
+  // 快選那排只反映輸入框的值，不能自己當一份狀態
+  await page.fill('#send-country', 'Iceland');
+  await page.waitForTimeout(200);
+  await page.click('#send-date-quick [data-offset="-1"]');
+  await page.waitForTimeout(200);
+  check('點「昨天」會填進日期欄',
+    (await page.inputValue('#send-date')) !== new Date().toISOString().slice(0, 10));
+  check('「昨天」亮起來、「今天」暗掉', await page.evaluate(() => {
+    const on = document.querySelector('#send-date-quick [data-offset="-1"]');
+    const off = document.querySelector('#send-date-quick [data-offset="0"]');
+    return on.classList.contains('is-on') && !off.classList.contains('is-on');
+  }));
+  await page.click('#send-date-quick [data-offset="0"]');
+  await page.waitForTimeout(200);
 
   await page.fill('#send-country', 'Iceland');
   await page.fill('#send-note', '在雷克雅維克');
@@ -123,6 +144,22 @@ const readCards = (page) =>
   check('預設未收到', cards[0] && cards[0].received === false);
   check('送出後搜尋框清空', (await page.inputValue('#search')) === '');
   check('浮動 ＋ 回來了', await page.isVisible('#fab'));
+  check('聚焦模式已解除', await page.evaluate(() =>
+    !document.getElementById('friend-list').classList.contains('is-focused')));
+
+  // 展開後直接打字搜尋（不按收合）也要能離開聚焦，
+  // 否則 is-focused 留著會把整份列表藏起來
+  await page.fill('#search', '小美');
+  await page.waitForTimeout(300);
+  await page.click('.friend__open');
+  await page.waitForTimeout(400);
+  await page.fill('#search', '小');
+  await page.waitForTimeout(350);
+  check('展開中改搜尋字也會離開聚焦', await page.evaluate(() =>
+    !document.getElementById('friend-list').classList.contains('is-focused')));
+  check('列表沒有整個消失', await page.locator('.friend').count() > 0);
+  check('搜尋框恢復浮動', await page.evaluate(() =>
+    !document.querySelector('.searchbar').classList.contains('is-static')));
 
   /* ---------- E. 搬家 ---------- */
   console.log('\nE. 搬家');

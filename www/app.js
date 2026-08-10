@@ -548,6 +548,7 @@ function renderCountryDatalist() {
 
 function renderFriendList() {
   const box = $('friend-list');
+  exitFocus();   // 重繪等於展開的內容沒了，聚焦狀態要跟著收
   const all = currentFriends();
   const results = searchFriends(state.query);
   const searching = state.query.trim().length > 0;
@@ -610,21 +611,34 @@ function openDetail(personId) {
   // 展開後表單很長，浮動的 ＋ 會壓在「記下這張明信片」上面
   $('fab').hidden = true;
 
-  // 展開的內容常常會超出畫面，把它捲進來
-  setTimeout(() => {
-    wrap.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, 60);
+  // 其他人收起來、搜尋框不再浮動（浮著會蓋住正在抄的地址）
+  $('friend-list').classList.add('is-focused');
+  document.querySelector('.searchbar').classList.add('is-static');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * 收掉聚焦模式。獨立成一個函式是因為離開聚焦有兩條路：
+ * 一是收合展開的人，二是搜尋時整份列表重繪（那時舊的 DOM 已經不在了）。
+ * 少走其中一條就會留下 is-focused，列表會整個看不見。
+ */
+function exitFocus() {
+  $('friend-list').classList.remove('is-focused');
+  document.querySelector('.searchbar').classList.remove('is-static');
+  if (state.page === 'send') $('fab').hidden = false;
+  state.sendPhoto = null;
 }
 
 function closeDetail(personId) {
+  exitFocus();
+
   const wrap = document.querySelector(`.friend[data-person="${CSS.escape(personId)}"]`);
   if (!wrap) return;
   const box = wrap.querySelector('.friend__detail');
   box.hidden = true;
   box.innerHTML = '';
   wrap.classList.remove('is-open');
-  state.sendPhoto = null;
-  if (state.page === 'send') $('fab').hidden = false;
 }
 
 /**
@@ -683,25 +697,25 @@ function detailHtml(f) {
 
       <div class="field">
         <span class="field__label">從哪個國家寄</span>
-        ${countries.length ? `
-          <div class="chips" id="send-country-chips" style="margin-bottom:8px">
-            ${countries.map((c) => `
-              <button class="chip" type="button" data-country="${escapeHtml(c)}">
-                ${escapeHtml(c)}
-              </button>`).join('')}
-          </div>` : ''}
-        <input class="input" id="send-country" type="text" placeholder="例如 Japan"
+        <input class="input" id="send-country" type="text" placeholder="例如 日本"
                maxlength="40" autocomplete="off" list="country-list" required>
+        ${countries.length ? `
+          <span class="quickpick" id="send-country-quick">
+            <span class="quickpick__label">最近寄過</span>
+            ${countries.map((c) => `
+              <button class="quickpick__item" type="button"
+                      data-country="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('')}
+          </span>` : ''}
       </div>
 
       <div class="field">
         <span class="field__label">寄出日期</span>
-        <div class="chips" style="margin-bottom:8px">
-          <button class="chip is-on" type="button" data-offset="0">今天</button>
-          <button class="chip" type="button" data-offset="-1">昨天</button>
-        </div>
         <input class="input input--date" id="send-date" type="date"
                value="${todayStr()}" required>
+        <span class="quickpick" id="send-date-quick">
+          <button class="quickpick__item is-on" type="button" data-offset="0">今天</button>
+          <button class="quickpick__item" type="button" data-offset="-1">昨天</button>
+        </span>
       </div>
 
       <div class="field">
@@ -1008,35 +1022,42 @@ function bindSendForm(friend) {
   const recent = knownCountries()[0];
   if (recent) $('send-country').value = recent;
 
-  const chipBox = $('send-country-chips');
-  if (chipBox) {
-    chipBox.addEventListener('click', (e) => {
-      const chip = e.target.closest('[data-country]');
-      if (!chip) return;
-      $('send-country').value = chip.dataset.country;
-      chipBox.querySelectorAll('.chip').forEach((c) =>
-        c.classList.toggle('is-on', c === chip));
+  /** 快選那排只反映輸入框現在的值，不自己當一份狀態 */
+  const syncCountryPick = () => {
+    const val = $('send-country').value.trim();
+    const box = $('send-country-quick');
+    if (!box) return;
+    box.querySelectorAll('[data-country]').forEach((item) => {
+      item.classList.toggle('is-on', item.dataset.country === val);
     });
-    // 預填的國家如果剛好有 chip，讓它亮起來
-    chipBox.querySelectorAll('[data-country]').forEach((c) => {
-      c.classList.toggle('is-on', c.dataset.country === recent);
+  };
+
+  const syncDatePick = () => {
+    const val = $('send-date').value;
+    $('send-date-quick').querySelectorAll('[data-offset]').forEach((item) => {
+      item.classList.toggle('is-on', todayStr(Number(item.dataset.offset)) === val);
+    });
+  };
+
+  const countryBox = $('send-country-quick');
+  if (countryBox) {
+    countryBox.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-country]');
+      if (!item) return;
+      $('send-country').value = item.dataset.country;
+      syncCountryPick();
     });
   }
+  $('send-country').addEventListener('input', syncCountryPick);
+  syncCountryPick();
 
-  form.querySelectorAll('.chip[data-offset]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      $('send-date').value = todayStr(Number(chip.dataset.offset));
-      form.querySelectorAll('.chip[data-offset]').forEach((c) =>
-        c.classList.toggle('is-on', c === chip));
-    });
+  $('send-date-quick').addEventListener('click', (e) => {
+    const item = e.target.closest('[data-offset]');
+    if (!item) return;
+    $('send-date').value = todayStr(Number(item.dataset.offset));
+    syncDatePick();
   });
-
-  $('send-date').addEventListener('change', () => {
-    const val = $('send-date').value;
-    form.querySelectorAll('.chip[data-offset]').forEach((c) => {
-      c.classList.toggle('is-on', todayStr(Number(c.dataset.offset)) === val);
-    });
-  });
+  $('send-date').addEventListener('change', syncDatePick);
 
   $('send-photo').addEventListener('change', async (e) => {
     const file = e.target.files && e.target.files[0];

@@ -237,6 +237,14 @@ ul { list-style: none; }
 }
 .searchbar__clear[hidden] { display: none; }
 
+/* 展開某位朋友時搜尋框不再浮著 —— 它會蓋住正在抄的地址 */
+.searchbar.is-static {
+  position: static;
+}
+
+/* 展開後其他人先收起來，畫面上只剩「這個人的地址」和「寄一張」兩件事 */
+.friends.is-focused .friend:not(.is-open) { display: none; }
+
 /* ==========================================================================
    朋友列表
    ========================================================================== */
@@ -404,9 +412,40 @@ ul { list-style: none; }
 }
 
 .sendform__title {
-  font-size: 14px;
-  font-weight: 620;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+/* 快選：輸入框才是主角，這排只是「懶得打字的話點這裡」。
+   刻意做成一行小字而不是按鈕 —— 之前用大塊 chip，
+   選完之後上下兩個地方顯示同一個值，看起來像被問了兩次。 */
+.quickpick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-top: 9px;
+  padding-left: 2px;
+}
+
+.quickpick__label {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.quickpick__item {
+  padding: 7px 2px;
+  margin: -5px 0;
+  font-size: 13.5px;
   color: var(--text-secondary);
+  border-bottom: 1.5px solid transparent;
+  transition: color .14s, border-color .14s;
+}
+.quickpick__item.is-on {
+  color: var(--accent-deep);
+  font-weight: 620;
+  border-bottom-color: var(--accent);
 }
 
 /* ==========================================================================
