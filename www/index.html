@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>明信片通訊錄</title>
+<meta name="description" content="出國寄明信片時查地址、記紀錄，資料存進 Google 試算表">
+<meta name="theme-color" content="#c2410c" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="明信片">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== 頂部 ========== -->
+  <header class="topbar">
+    <div class="topbar__row">
+      <h1 class="topbar__title" id="topbar-title">寄明信片</h1>
+      <div class="topbar__actions">
+        <button class="sync-chip" id="sync-chip" type="button" aria-live="polite">
+          <span class="sync-chip__dot"></span>
+          <span class="sync-chip__text" id="sync-text">尚未設定</span>
+        </button>
+        <button class="icon-btn" id="btn-settings" type="button" aria-label="設定">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2L5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== 內容 ========== -->
+  <main class="main" id="main">
+
+    <!-- ---------- 分頁 1：我要寄信 ---------- -->
+    <section class="page" id="page-send" aria-label="我要寄信">
+
+      <div class="searchbar">
+        <svg class="searchbar__icon" viewBox="0 0 24 24" width="19" height="19" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.4" stroke="currentColor" stroke-width="2"/>
+          <path d="M15.8 15.8L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input class="searchbar__input" id="search" type="search"
+               placeholder="打名字找地址" autocomplete="off"
+               autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <button class="searchbar__clear" id="search-clear" type="button"
+                aria-label="清除" hidden>✕</button>
+      </div>
+
+      <div class="friends" id="friend-list"></div>
+
+      <!-- 搜尋沒結果：直接在這裡新增 -->
+      <div class="noresult" id="search-noresult" hidden>
+        <p class="noresult__text">通訊錄裡沒有 <strong id="noresult-term"></strong></p>
+        <button class="btn btn--primary" id="btn-add-from-search" type="button">
+          ＋ 新增這個朋友
+        </button>
+      </div>
+
+      <!-- 完全沒有朋友時 -->
+      <div class="empty" id="send-empty" hidden>
+        <div class="empty__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="56" height="56" fill="none">
+            <rect x="6" y="12" width="36" height="24" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M26 20h11M26 26h11M26 31h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M24 12v24" stroke="currentColor" stroke-width="2"/>
+            <circle cx="15" cy="22" r="3.4" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 31c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="empty__title">通訊錄還是空的</p>
+        <p class="empty__hint">點右下角的 ＋ 加入第一個朋友</p>
+      </div>
+    </section>
+
+    <!-- ---------- 分頁 2：寄信歷史 ---------- -->
+    <section class="page" id="page-history" aria-label="寄信歷史" hidden>
+
+      <div class="filters">
+        <div class="filters__row">
+          <select class="select" id="filter-friend" aria-label="篩選朋友">
+            <option value="">所有朋友</option>
+          </select>
+          <select class="select" id="filter-country" aria-label="篩選國家">
+            <option value="">所有國家</option>
+          </select>
+        </div>
+
+        <div class="filters__row">
+          <input class="input input--date" id="filter-from" type="date" aria-label="起始日期">
+          <span class="filters__dash" aria-hidden="true">—</span>
+          <input class="input input--date" id="filter-to" type="date" aria-label="結束日期">
+        </div>
+
+        <div class="filters__row filters__row--foot">
+          <label class="toggle">
+            <input type="checkbox" id="filter-unreceived">
+            <span class="toggle__box" aria-hidden="true"></span>
+            <span>只看還沒收到的</span>
+          </label>
+          <button class="linkbtn" id="btn-clear-filters" type="button" hidden>清除篩選</button>
+        </div>
+      </div>
+
+      <p class="result-count" id="history-count">共 0 張</p>
+
+      <div class="cards" id="card-list"></div>
+
+      <div class="empty" id="history-empty" hidden>
+        <div class="empty__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="56" height="56" fill="none">
+            <rect x="6" y="13" width="36" height="24" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 16l18 11 18-11" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="empty__title" id="history-empty-title">還沒有寄出任何明信片</p>
+        <p class="empty__hint" id="history-empty-hint">到「寄明信片」記下第一張</p>
+      </div>
+    </section>
+
+    <!-- ---------- 設定（不佔分頁，從右上角齒輪進） ---------- -->
+    <section class="page" id="page-settings" aria-label="設定" hidden>
+
+      <div class="card">
+        <h2 class="card__title">Google 試算表連線</h2>
+        <p class="card__sub">貼上 Apps Script 部署後產生的網址（結尾是 /exec）</p>
+        <input class="input" id="api-url" type="url" inputmode="url"
+               placeholder="https://script.google.com/macros/s/.../exec"
+               autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input class="input" id="api-secret" type="text"
+               placeholder="通關密語（與後端 SECRET 相同）"
+               autocomplete="off" autocapitalize="off" spellcheck="false"
+               style="margin-top:8px">
+        <div class="row-btns">
+          <button class="btn btn--primary" id="btn-save-api" type="button">儲存並測試</button>
+          <button class="btn" id="btn-sync-now" type="button">立即同步</button>
+        </div>
+        <p class="hint" id="api-status"></p>
+      </div>
+
+      <div class="card">
+        <h2 class="card__title">明信片照片</h2>
+        <p class="card__sub">照片只存在這支手機，不會上傳到試算表</p>
+        <div class="kv"><span>已存照片</span><strong id="photo-count">0 張</strong></div>
+        <div class="kv"><span>佔用空間</span><strong id="photo-size">0 MB</strong></div>
+        <p class="hint hint--warn">清除瀏覽器資料或換手機，照片會消失（地址與寄信紀錄在試算表裡不受影響）。</p>
+        <button class="btn btn--danger" id="btn-clear-photos" type="button">清除全部照片</button>
+      </div>
+
+      <div class="card">
+        <h2 class="card__title">資料</h2>
+        <div class="kv"><span>朋友</span><strong id="stat-friends">0</strong></div>
+        <div class="kv"><span>明信片</span><strong id="stat-cards">0</strong></div>
+        <div class="kv"><span>待同步</span><strong id="stat-pending">0</strong></div>
+        <div class="kv"><span>最後同步</span><strong id="stat-lastsync">—</strong></div>
+        <div class="row-btns">
+          <button class="btn" id="btn-export-friends" type="button">匯出通訊錄</button>
+          <button class="btn" id="btn-export-cards" type="button">匯出寄信紀錄</button>
+        </div>
+      </div>
+
+      <p class="version">明信片通訊錄 · 資料存於你的 Google 試算表</p>
+    </section>
+
+  </main>
+
+  <!-- ========== 浮動新增鈕（新增朋友） ========== -->
+  <button class="fab" id="fab" type="button" aria-label="新增朋友">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- ========== 底部分頁 ========== -->
+  <nav class="tabbar" role="tablist">
+    <button class="tab is-active" data-page="send" role="tab" aria-selected="true" type="button">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+        <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+        <path d="M13 10h5M13 14h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 6v12" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>寄明信片</span>
+    </button>
+    <button class="tab" data-page="history" role="tab" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>寄信歷史</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ========== 新增 / 編輯朋友 ========== -->
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="sheet" id="friend-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="friend-sheet-title">
+  <div class="sheet__grip" aria-hidden="true"></div>
+
+  <div class="sheet__head">
+    <button class="sheet__cancel" id="btn-friend-cancel" type="button">取消</button>
+    <h2 class="sheet__title" id="friend-sheet-title">新增朋友</h2>
+    <button class="sheet__del" id="btn-friend-delete" type="button" hidden>刪除</button>
+  </div>
+
+  <form class="sheet__body" id="friend-form" novalidate>
+
+    <label class="field">
+      <span class="field__label">名稱<span class="field__req">必填</span></span>
+      <input class="input" id="f-name" type="text" placeholder="怎麼稱呼他，例如 小明"
+             maxlength="30" autocomplete="off" enterkeyhint="next" required>
+      <span class="field__hint">搜尋時打這個</span>
+    </label>
+
+    <label class="field">
+      <span class="field__label">收件人</span>
+      <input class="input" id="f-recipient" type="text" placeholder="明信片上要寫的名字，例如 Wang Xiao-Ming"
+             maxlength="60" autocomplete="off" enterkeyhint="next">
+      <span class="field__hint">留空的話就用上面的名稱</span>
+    </label>
+
+    <label class="field">
+      <span class="field__label">地址<span class="field__req">必填</span></span>
+      <textarea class="input input--area" id="f-address" rows="2"
+                placeholder="街道、門牌，寄國外請用英文" maxlength="200"
+                autocomplete="off" required></textarea>
+    </label>
+
+    <div class="field-row">
+      <label class="field field--grow">
+        <span class="field__label">城市</span>
+        <input class="input" id="f-city" type="text" placeholder="Taipei"
+               maxlength="40" autocomplete="off">
+      </label>
+      <label class="field field--narrow">
+        <span class="field__label">郵遞區號</span>
+        <input class="input" id="f-postal" type="text" placeholder="110"
+               maxlength="16" autocomplete="off" inputmode="numeric">
+      </label>
+    </div>
+
+    <label class="field">
+      <span class="field__label">國家<span class="field__req">必填</span></span>
+      <input class="input" id="f-country" type="text" placeholder="Taiwan"
+             maxlength="40" autocomplete="off" list="country-list" enterkeyhint="done" required>
+      <datalist id="country-list"></datalist>
+    </label>
+
+    <p class="form-error" id="friend-error" hidden></p>
+
+    <button class="btn btn--submit" id="btn-friend-submit" type="submit">儲存</button>
+
+    <!-- 編輯既有朋友時才出現 -->
+    <button class="btn btn--ghost" id="btn-moved" type="button" hidden>
+      他搬家了 · 保留舊地址並新增
+    </button>
+    <p class="hint" id="moved-hint" hidden>
+      舊地址會標成「已搬家」留在歷史裡，上面填的成為現用地址。
+    </p>
+  </form>
+</div>
+
+<!-- ========== 編輯明信片（歷史頁用） ========== -->
+<div class="sheet" id="card-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="card-sheet-title">
+  <div class="sheet__grip" aria-hidden="true"></div>
+
+  <div class="sheet__head">
+    <button class="sheet__cancel" id="btn-card-cancel" type="button">取消</button>
+    <h2 class="sheet__title" id="card-sheet-title">編輯明信片</h2>
+    <button class="sheet__del" id="btn-card-delete" type="button">刪除</button>
+  </div>
+
+  <form class="sheet__body" id="card-form" novalidate>
+
+    <div class="field">
+      <span class="field__label">寄給</span>
+      <p class="readonly-value" id="c-friend">—</p>
+    </div>
+
+    <label class="field">
+      <span class="field__label">寄出國家</span>
+      <input class="input" id="c-country" type="text" placeholder="從哪個國家寄的"
+             maxlength="40" autocomplete="off" list="country-list" required>
+    </label>
+
+    <label class="field">
+      <span class="field__label">寄出日期</span>
+      <input class="input input--date" id="c-date" type="date" required>
+    </label>
+
+    <label class="field">
+      <span class="field__label">備註</span>
+      <textarea class="input input--area" id="c-note" rows="2"
+                placeholder="寫了什麼、當下的心情" maxlength="200" autocomplete="off"></textarea>
+    </label>
+
+    <div class="field">
+      <span class="field__label">照片</span>
+      <div class="photo-row">
+        <label class="photo-btn" id="c-photo-btn">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M4 8h3l1.5-2h7L17 8h3v11H4V8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+          <span id="c-photo-text">拍照或選圖</span>
+          <input type="file" id="c-photo" accept="image/*" hidden>
+        </label>
+        <div class="photo-preview" id="c-photo-preview" hidden>
+          <img id="c-photo-img" alt="明信片預覽">
+          <button class="photo-preview__x" id="c-photo-remove" type="button" aria-label="移除照片">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <label class="toggle toggle--field">
+      <input type="checkbox" id="c-received">
+      <span class="toggle__box" aria-hidden="true"></span>
+      <span>對方已經收到了</span>
+    </label>
+
+    <p class="form-error" id="card-error" hidden></p>
+
+    <button class="btn btn--submit" type="submit">儲存</button>
+  </form>
+</div>
+
+<!-- ========== 照片檢視 ========== -->
+<div class="viewer" id="viewer" hidden>
+  <button class="viewer__close" id="viewer-close" type="button" aria-label="關閉">✕</button>
+  <img id="viewer-img" alt="明信片照片">
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
