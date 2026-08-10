@@ -10,7 +10,7 @@ const zlib = require('zlib');
 const fs = require('fs');
 const path = require('path');
 
-const BG = [0xc2, 0x41, 0x0c]; // 主色橘（與 App 的 --accent 一致）
+const BG = [0xd4, 0x47, 0x7f]; // 主色玫瑰粉（與 App 的 --accent 一致）
 const FG = [0xff, 0xff, 0xff]; // 明信片白
 
 /* ---------- PNG 編碼 ---------- */

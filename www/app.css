@@ -1,33 +1,36 @@
 /* ==========================================================================
    明信片通訊錄 — 樣式
-   手機優先。設計 token 沿用旅遊記帳那套（已驗證的淺／深兩版），
-   主色改成橘 —— 兩個 App 放在主畫面上並排時一眼分得出來。
+   手機優先。玫瑰粉配色，淺色深色兩套都驗過對比度。
+
+   主題由 <html data-theme="light|dark"> 決定，index.html 的 inline script
+   在畫面畫出來之前就設好了，所以不會先閃一下再變色。
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* 介面 */
-  --page:           #f9f9f7;
-  --surface-1:      #fcfcfb;
-  --surface-2:      #f2f2ee;
-  --text-primary:   #0b0b0b;
-  --text-secondary: #52514e;
-  --muted:          #898781;
-  --grid:           #e1e0d9;
-  --baseline:       #c3c2b7;
-  --border:         rgba(11, 11, 11, 0.10);
-  --shadow:         0 1px 2px rgba(11,11,11,.05), 0 8px 24px rgba(11,11,11,.06);
-  --shadow-lift:    0 4px 12px rgba(11,11,11,.12), 0 16px 40px rgba(11,11,11,.16);
+  /* 介面：帶粉的暖白，不用純灰白 */
+  --page:           #fdf6f8;
+  --surface-1:      #fffdfe;
+  --surface-2:      #fbecf1;
+  --text-primary:   #2e1f27;   /* 暖黑，比純黑柔和 */
+  --text-secondary: #6d5761;
+  --muted:          #a58e99;
+  --grid:           #f2dde4;
+  --baseline:       #e0c3ce;
+  --border:         rgba(46, 31, 39, 0.10);
+  --shadow:         0 1px 2px rgba(94,45,66,.06), 0 8px 24px rgba(94,45,66,.08);
+  --shadow-lift:    0 4px 12px rgba(94,45,66,.14), 0 16px 40px rgba(94,45,66,.18);
 
-  /* 主色：深橘。配白字有 4.9:1，小字按鈕也讀得清楚 */
-  --accent:      #c2410c;
+  /* 主色：玫瑰粉。配白字 4.9:1，小字按鈕也讀得清楚 */
+  --accent:      #d4477f;
   --on-accent:   #ffffff;
-  --accent-weak: #fbe3d5;
+  --accent-weak: #fde3ed;
+  --accent-deep: #a8305f;   /* 淡粉底上的小字用這個，對比才夠 */
 
-  --danger:      #d03b3b;
-  --good:        #0ca30c;
-  --warn:        #b45309;
+  --danger:      #d6455f;
+  --good:        #2f9e6d;
+  --warn:        #c47a2c;
 
   --radius:    14px;
   --radius-sm: 10px;
@@ -37,31 +40,31 @@
   --safe-t: env(safe-area-inset-top, 0px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
+/* 深色也走暖粉調，不用純黑 —— 半夜看不刺眼，又還是同一套個性 */
+:root[data-theme="dark"] {
+  color-scheme: dark;
 
-    --page:           #0d0d0d;
-    --surface-1:      #1a1a19;
-    --surface-2:      #232322;
-    --text-primary:   #ffffff;
-    --text-secondary: #c3c2b7;
-    --muted:          #898781;
-    --grid:           #2c2c2a;
-    --baseline:       #383835;
-    --border:         rgba(255, 255, 255, 0.10);
-    --shadow:         0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
-    --shadow-lift:    0 4px 12px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.6);
+  --page:           #1b1419;
+  --surface-1:      #261d23;
+  --surface-2:      #33262e;
+  --text-primary:   #fdf3f7;
+  --text-secondary: #d9c2cc;
+  --muted:          #a8909c;
+  --grid:           #3a2c34;
+  --baseline:       #4d3b45;
+  --border:         rgba(253, 243, 247, 0.11);
+  --shadow:         0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
+  --shadow-lift:    0 4px 12px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.6);
 
-    /* 深色底上要夠亮才看得見，所以按鈕上的字改用深色 */
-    --accent:      #f2884d;
-    --on-accent:   #1a1a19;
-    --accent-weak: #4a2410;
+  /* 深色底上要夠亮才看得見，所以按鈕上的字改用深色 */
+  --accent:      #f5a3c0;
+  --on-accent:   #2b1c24;
+  --accent-weak: #4d2a3a;
+  --accent-deep: #f5a3c0;
 
-    --danger:      #e66767;
-    --good:        #0ca30c;
-    --warn:        #e0a34a;
-  }
+  --danger:      #f08897;
+  --good:        #4fbf8f;
+  --warn:        #e0a86a;
 }
 
 * { box-sizing: border-box; }
@@ -274,7 +277,7 @@ ul { list-style: none; }
   display: grid;
   place-items: center;
   background: var(--accent-weak);
-  color: var(--accent);
+  color: var(--accent-deep);
   font-size: 14.5px;
   font-weight: 620;
 }
@@ -933,7 +936,7 @@ ul { list-style: none; }
 .field__req {
   font-size: 10.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-deep);
   background: var(--accent-weak);
   padding: 1px 6px;
   border-radius: 999px;

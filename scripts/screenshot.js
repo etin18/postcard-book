@@ -76,7 +76,9 @@ const SEED = {
       localStorage.setItem('pc.friends', JSON.stringify(friends));
       localStorage.setItem('pc.cards', JSON.stringify(cards));
       localStorage.setItem('pc.lastSync', new Date().toISOString());
-    }, SEED);
+      // 主題現在由 App 自己記住，不跟著系統，所以要明著指定
+      localStorage.setItem('pc.theme', seed.theme);
+    }, { ...SEED, theme: scheme });
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(400);
 

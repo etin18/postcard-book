@@ -19,6 +19,7 @@ const LS = {
   friends: 'pc.friends',
   cards: 'pc.cards',
   lastSync: 'pc.lastSync',
+  theme: 'pc.theme',
 };
 
 const STATUS_CURRENT = '現用';
@@ -37,6 +38,7 @@ const state = {
   syncing: false,
   lastError: null,
 
+  theme: 'light',    // light | dark | auto
   page: 'send',
   query: '',
   openPersonId: null,   // 目前展開中的朋友
@@ -129,6 +131,7 @@ function loadLocal() {
     state.friends = JSON.parse(localStorage.getItem(LS.friends) || '[]');
     state.cards = JSON.parse(localStorage.getItem(LS.cards) || '[]');
     state.lastSync = localStorage.getItem(LS.lastSync) || null;
+    state.theme = localStorage.getItem(LS.theme) || 'light';
   } catch (err) {
     console.warn('讀取本機資料失敗', err);
   }
@@ -865,9 +868,40 @@ async function hydrateThumbs(cards) {
   }
 }
 
+/* ---------- 外觀主題 ---------- */
+
+/* 行動瀏覽器的狀態列會吃這個色，用頁面背景色跟畫面融成一片 */
+const THEME_BG = { light: '#fdf6f8', dark: '#1b1419' };
+
+function resolveTheme(pref) {
+  if (pref === 'auto') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return pref === 'dark' ? 'dark' : 'light';
+}
+
+function applyTheme(pref) {
+  state.theme = pref;
+  try { localStorage.setItem(LS.theme, pref); } catch (err) { /* 無痕模式 */ }
+
+  const resolved = resolveTheme(pref);
+  document.documentElement.dataset.theme = resolved;
+  $('theme-color').setAttribute('content', THEME_BG[resolved]);
+
+  renderThemeChips();
+}
+
+function renderThemeChips() {
+  document.querySelectorAll('[data-theme-pref]').forEach((chip) => {
+    chip.classList.toggle('is-on', chip.dataset.themePref === state.theme);
+  });
+}
+
 /* ---------- 設定 ---------- */
 
 async function renderSettings() {
+  renderThemeChips();
+
   $('api-url').value = state.apiUrl;
   $('api-secret').value = state.secret;
   $('stat-friends').textContent = `${currentFriends().length} 人`;
@@ -1625,6 +1659,17 @@ function bindEvents() {
   $('btn-export-friends').addEventListener('click', exportFriends);
   $('btn-export-cards').addEventListener('click', exportCards);
 
+  // 外觀
+  $('theme-chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-theme-pref]');
+    if (chip) applyTheme(chip.dataset.themePref);
+  });
+
+  // 選了「跟隨系統」時，系統日夜切換要跟著變
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (state.theme === 'auto') applyTheme('auto');
+  });
+
   // 連線狀態
   window.addEventListener('online', () => { refreshSyncChip(); sync(); });
   window.addEventListener('offline', refreshSyncChip);
@@ -1667,6 +1712,7 @@ function closeViewer() {
 
 function init() {
   loadLocal();
+  applyTheme(state.theme);   // head 的 inline script 已先上色，這裡只是接手同步狀態
   bindEvents();
   switchPage('send');
 

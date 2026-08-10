@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>明信片通訊錄</title>
 <meta name="description" content="出國寄明信片時查地址、記紀錄，資料存進 Google 試算表">
-<meta name="theme-color" content="#c2410c" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" id="theme-color" content="#d4477f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="明信片">
@@ -14,6 +13,20 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="app.css">
+<script>
+/* 主題要在畫面畫出來之前就決定好，否則會先閃一下淺色再變深色。
+   預設淺色；選了「跟隨系統」才去問系統偏好。 */
+(function () {
+  try {
+    var pref = localStorage.getItem('pc.theme') || 'light';
+    var dark = pref === 'dark' || (pref === 'auto' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  } catch (e) {
+    document.documentElement.dataset.theme = 'light';
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -145,6 +158,16 @@
           <button class="btn" id="btn-sync-now" type="button">立即同步</button>
         </div>
         <p class="hint" id="api-status"></p>
+      </div>
+
+      <div class="card">
+        <h2 class="card__title">外觀</h2>
+        <p class="card__sub">預設是淺色，晚上想護眼再切深色</p>
+        <div class="chips" id="theme-chips">
+          <button class="chip" type="button" data-theme-pref="light">淺色</button>
+          <button class="chip" type="button" data-theme-pref="dark">深色</button>
+          <button class="chip" type="button" data-theme-pref="auto">跟隨系統</button>
+        </div>
       </div>
 
       <div class="card">
