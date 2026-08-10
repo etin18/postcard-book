@@ -562,15 +562,25 @@ function renderFriendList() {
   box.innerHTML = results.map(friendRowHtml).join('');
 }
 
+/** 頭像色跟著「人」固定 —— 用 personId 決定，排序或搜尋都不會換色 */
+function avatarTone(personId) {
+  let h = 0;
+  for (let i = 0; i < personId.length; i++) {
+    h = (h * 31 + personId.charCodeAt(i)) % 4;
+  }
+  return h + 1;
+}
+
 function friendRowHtml(f) {
   const loc = [f.city, f.country].filter(Boolean).join(' · ');
   const initial = (f.name || '?').trim().charAt(0);
+  const tone = avatarTone(f.personId);
 
   return `
     <div class="friend" data-person="${escapeHtml(f.personId)}">
       <div class="friend__row">
         <button class="friend__open" type="button" data-open="${escapeHtml(f.personId)}">
-          <span class="friend__avatar" aria-hidden="true">${escapeHtml(initial)}</span>
+          <span class="friend__avatar friend__avatar--${tone}" aria-hidden="true">${escapeHtml(initial)}</span>
           <span class="friend__main">
             <span class="friend__name">${escapeHtml(f.name)}</span>
             <span class="friend__loc">${escapeHtml(loc || '沒有填城市與國家')}</span>
@@ -885,7 +895,7 @@ async function hydrateThumbs(cards) {
 /* ---------- 外觀主題 ---------- */
 
 /* 行動瀏覽器的狀態列會吃這個色，用頁面背景色跟畫面融成一片 */
-const THEME_BG = { light: '#fdf6f8', dark: '#1b1419' };
+const THEME_BG = { light: '#f5fbfd', dark: '#101f26' };
 
 function resolveTheme(pref) {
   if (pref === 'auto') {

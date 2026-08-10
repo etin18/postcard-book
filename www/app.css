@@ -1,6 +1,6 @@
 /* ==========================================================================
    明信片通訊錄 — 樣式
-   手機優先。玫瑰粉配色，淺色深色兩套都驗過對比度。
+   手機優先。水藍色系的粉彩配色，淺色深色兩套都驗過對比度。
 
    主題由 <html data-theme="light|dark"> 決定，index.html 的 inline script
    在畫面畫出來之前就設好了，所以不會先閃一下再變色。
@@ -9,62 +9,85 @@
 :root {
   color-scheme: light;
 
-  /* 介面：帶粉的暖白，不用純灰白 */
-  --page:           #fdf6f8;
-  --surface-1:      #fffdfe;
-  --surface-2:      #fbecf1;
-  --text-primary:   #2e1f27;   /* 暖黑，比純黑柔和 */
-  --text-secondary: #6d5761;
-  --muted:          #a58e99;
-  --grid:           #f2dde4;
-  --baseline:       #e0c3ce;
-  --border:         rgba(46, 31, 39, 0.10);
-  --shadow:         0 1px 2px rgba(94,45,66,.06), 0 8px 24px rgba(94,45,66,.08);
-  --shadow-lift:    0 4px 12px rgba(94,45,66,.14), 0 16px 40px rgba(94,45,66,.18);
+  /* 介面：極淡的水藍白當底、卡片純白，靠留白和淡色塊分區，
+     不靠深色線條 —— 清新感多半是這樣來的 */
+  --page:           #f5fbfd;
+  --surface-1:      #ffffff;
+  --surface-2:      #e8f4f8;
+  --text-primary:   #1c3640;   /* 深藍墨，比純黑柔和 */
+  --text-secondary: #4f6975;
+  --muted:          #8fa8b3;
+  --grid:           #ddeef4;
+  --baseline:       #b9d8e3;
+  --border:         rgba(28, 54, 64, 0.07);
+  --shadow:         0 1px 2px rgba(40,80,95,.04), 0 2px 10px rgba(40,80,95,.06);
+  --shadow-lift:    0 4px 14px rgba(40,80,95,.10), 0 12px 32px rgba(40,80,95,.14);
 
-  /* 主色：玫瑰粉。配白字 4.9:1，小字按鈕也讀得清楚 */
-  --accent:      #d4477f;
-  --on-accent:   #ffffff;
-  --accent-weak: #fde3ed;
-  --accent-deep: #a8305f;   /* 淡粉底上的小字用這個，對比才夠 */
+  /* 主色分兩支：
+     --accent 是那個亮水藍，只當「背景」用（配深色字，對比 8.5:1）；
+     --accent-deep 是它的深化版，給文字、圖示、外框用
+     —— 亮水藍當文字在白底上只有 1.6:1，整片會糊掉。 */
+  --accent:      #a7def0;
+  --on-accent:   #133039;
+  --accent-deep: #2a7591;
+  --accent-weak: #e3f4fa;
 
-  --danger:      #d6455f;
-  --good:        #2f9e6d;
-  --warn:        #c47a2c;
+  /* 點綴粉彩，用在頭像等處。每個都配一支深化版當文字色 */
+  --c-blue:      #bde6f4;
+  --c-blue-ink:  #2a7591;
+  --c-pink:      #fcd0d9;
+  --c-pink-ink:  #b0455f;
+  --c-mint:      #c6f0e4;
+  --c-mint-ink:  #2c7d68;
+  --c-cream:     #f7ecba;
+  --c-cream-ink: #8a6a15;
 
-  --radius:    14px;
-  --radius-sm: 10px;
+  --danger:      #d4535a;
+  --good:        #2f8f6b;
+  --warn:        #b0791e;
+
+  --radius:    18px;
+  --radius-sm: 12px;
   --tabbar-h:  58px;
 
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 }
 
-/* 深色也走暖粉調，不用純黑 —— 半夜看不刺眼，又還是同一套個性 */
+/* 深色走深夜海調，不用純黑 —— 半夜看不刺眼，又還是同一套個性 */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page:           #1b1419;
-  --surface-1:      #261d23;
-  --surface-2:      #33262e;
-  --text-primary:   #fdf3f7;
-  --text-secondary: #d9c2cc;
-  --muted:          #a8909c;
-  --grid:           #3a2c34;
-  --baseline:       #4d3b45;
-  --border:         rgba(253, 243, 247, 0.11);
+  --page:           #101f26;
+  --surface-1:      #182c35;
+  --surface-2:      #223a45;
+  --text-primary:   #eaf6fa;
+  --text-secondary: #b6cfda;
+  --muted:          #7f9aa6;
+  --grid:           #24404c;
+  --baseline:       #365b68;
+  --border:         rgba(234, 246, 250, 0.11);
   --shadow:         0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
   --shadow-lift:    0 4px 12px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.6);
 
-  /* 深色底上要夠亮才看得見，所以按鈕上的字改用深色 */
-  --accent:      #f5a3c0;
-  --on-accent:   #2b1c24;
-  --accent-weak: #4d2a3a;
-  --accent-deep: #f5a3c0;
+  /* 深色底上亮水藍已經夠顯眼，文字色就跟主色同一支 */
+  --accent:      #7ecbe4;
+  --on-accent:   #101f26;
+  --accent-deep: #7ecbe4;
+  --accent-weak: #1e4351;
 
-  --danger:      #f08897;
-  --good:        #4fbf8f;
-  --warn:        #e0a86a;
+  --c-blue:      #24505f;
+  --c-blue-ink:  #9bd8ec;
+  --c-pink:      #56313a;
+  --c-pink-ink:  #f3aeba;
+  --c-mint:      #21504a;
+  --c-mint-ink:  #8fdcc9;
+  --c-cream:     #4d431f;
+  --c-cream-ink: #e4d195;
+
+  --danger:      #ef8a90;
+  --good:        #4cbf9a;
+  --warn:        #dda45f;
 }
 
 * { box-sizing: border-box; }
@@ -142,7 +165,7 @@ ul { list-style: none; }
   transition: background .15s, color .15s;
 }
 .icon-btn:active { background: var(--surface-2); }
-.icon-btn.is-on { color: var(--accent); background: var(--surface-2); }
+.icon-btn.is-on { color: var(--accent-deep); background: var(--surface-2); }
 
 /* 同步狀態 */
 .sync-chip {
@@ -168,7 +191,7 @@ ul { list-style: none; }
 .sync-chip.is-wait  .sync-chip__dot { background: #fab219; }
 .sync-chip.is-error .sync-chip__dot { background: var(--danger); }
 .sync-chip.is-busy  .sync-chip__dot {
-  background: var(--accent);
+  background: var(--accent-deep);
   animation: pulse 1s ease-in-out infinite;
 }
 @keyframes pulse { 50% { opacity: .3; } }
@@ -199,13 +222,14 @@ ul { list-style: none; }
   gap: 9px;
   padding: 0 13px;
   margin: 2px 0 14px;
-  background: var(--surface-2);
+  background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 999px;
+  box-shadow: var(--shadow);
   transition: border-color .15s, background .15s;
 }
 .searchbar:focus-within {
-  border-color: var(--accent);
+  border-color: var(--accent-deep);
   background: var(--surface-1);
 }
 
@@ -249,16 +273,21 @@ ul { list-style: none; }
    朋友列表
    ========================================================================== */
 
+/* 一人一張獨立小卡、彼此留空隙 —— 比連在一起的長列表輕盈 */
 .friends {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
 .friends:empty { display: none; }
 
-.friend { border-bottom: 1px solid var(--border); }
-.friend:last-child { border-bottom: none; }
+.friend {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
 
 .friend__row {
   display: flex;
@@ -289,6 +318,12 @@ ul { list-style: none; }
   font-size: 14.5px;
   font-weight: 620;
 }
+
+/* 頭像顏色跟著「人」固定，不隨排序或搜尋結果改變 */
+.friend__avatar--1 { background: var(--c-blue);  color: var(--c-blue-ink); }
+.friend__avatar--2 { background: var(--c-pink);  color: var(--c-pink-ink); }
+.friend__avatar--3 { background: var(--c-mint);  color: var(--c-mint-ink); }
+.friend__avatar--4 { background: var(--c-cream); color: var(--c-cream-ink); }
 
 .friend__main { flex: 1; min-width: 0; }
 
@@ -445,7 +480,7 @@ ul { list-style: none; }
 .quickpick__item.is-on {
   color: var(--accent-deep);
   font-weight: 620;
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--accent-deep);
 }
 
 /* ==========================================================================
@@ -514,7 +549,7 @@ ul { list-style: none; }
   background-size: 11px;
   text-overflow: ellipsis;
 }
-.select:focus { border-color: var(--accent); }
+.select:focus { border-color: var(--accent-deep); }
 
 .result-count {
   font-size: 13px;
@@ -524,7 +559,7 @@ ul { list-style: none; }
 
 .linkbtn {
   font-size: 13px;
-  color: var(--accent);
+  color: var(--accent-deep);
   font-weight: 550;
   padding: 6px 2px;
 }
@@ -562,9 +597,9 @@ ul { list-style: none; }
   box-shadow: 0 1px 3px rgba(0,0,0,.25);
   transition: transform .18s;
 }
-.toggle input:checked + .toggle__box { background: var(--accent); }
+.toggle input:checked + .toggle__box { background: var(--accent-deep); }
 .toggle input:checked + .toggle__box::after { transform: translateX(15px); }
-.toggle input:focus-visible + .toggle__box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toggle input:focus-visible + .toggle__box { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 
 .toggle--field {
   font-size: 15px;
@@ -641,7 +676,7 @@ ul { list-style: none; }
   align-items: center;
   gap: 6px;
 }
-.pcard__pin { color: var(--accent); flex: none; }
+.pcard__pin { color: var(--accent-deep); flex: none; }
 
 .pcard__note {
   font-size: 13px;
@@ -730,7 +765,7 @@ ul { list-style: none; }
   transition: border-color .15s, background .15s;
 }
 .input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-deep);
   background: var(--surface-1);
 }
 .input::placeholder { color: var(--muted); }
@@ -740,6 +775,14 @@ ul { list-style: none; }
   min-height: 62px;
   line-height: 1.5;
 }
+
+/* 綁了 datalist 的輸入框，瀏覽器會在右邊長一個原生下拉箭頭。
+   下方的「最近寄過」已經在做同一件事，兩個並存只會讓人以為是兩種東西。
+   限定 input[list] 才隱藏，日期欄位的日曆圖示要留著。 */
+input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+input[list] { appearance: none; }
 
 .input--date {
   min-height: 44px;
@@ -874,7 +917,7 @@ ul { list-style: none; }
   font-weight: 550;
   transition: color .15s;
 }
-.tab.is-active { color: var(--accent); }
+.tab.is-active { color: var(--accent-deep); }
 .tab:active { opacity: .6; }
 
 /* ==========================================================================
@@ -1030,7 +1073,7 @@ ul { list-style: none; }
 .chip:active { transform: scale(.97); }
 .chip.is-on {
   background: var(--surface-1);
-  border-color: var(--accent);
+  border-color: var(--accent-deep);
   color: var(--text-primary);
   font-weight: 600;
 }

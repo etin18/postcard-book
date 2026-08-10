@@ -2,7 +2,7 @@
  * 產生 PWA 圖示（不依賴任何套件，純 Node 手寫 PNG）
  * 執行：node scripts/make-icons.js
  *
- * 圖案：橘底 + 白色明信片，右上角一張郵票、左邊幾行地址。
+ * 圖案：水藍底 + 白色明信片，右上角一張郵票、左邊幾行地址。
  * 內容都落在中心安全區內，所以可以當 maskable icon 用。
  */
 
@@ -10,7 +10,7 @@ const zlib = require('zlib');
 const fs = require('fs');
 const path = require('path');
 
-const BG = [0xd4, 0x47, 0x7f]; // 主色玫瑰粉（與 App 的 --accent 一致）
+const BG = [0x2a, 0x75, 0x91]; // 主色水藍的深化版（與 App 的 --accent-deep 一致）
 const FG = [0xff, 0xff, 0xff]; // 明信片白
 
 /* ---------- PNG 編碼 ---------- */
