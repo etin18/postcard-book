@@ -83,16 +83,30 @@ postcard-app/
 因為 App 需要透過網址（http/https）打開，直接雙擊 `index.html` 是不行的
 （Service Worker、相機、IndexedDB 都需要正式網址）。兩種方式擇一：
 
-### 方式 A：免費靜態空間（推薦，手機隨時能開）
+### 方式 A：GitHub Pages（推薦，推上去就自動更新）
 
-把 `www/` 資料夾丟到任一免費靜態網站服務，得到一個網址：
+本專案已內建 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)，
+**推送到 `main` 就會自動把 `www/` 發佈上線**，不用手動上傳。網址是：
 
-- **Cloudflare Pages** / **Netlify** / **Vercel** / **GitHub Pages** 都可以，拖曳 `www` 上傳即可
+<https://etin18.github.io/postcard-book/>
+
+第一次推送時 workflow 會自動幫你開啟 Pages（`enablement: true`），
+之後每次 `git push` 過幾十秒線上版就更新了。
+到 repo 的 **Actions** 分頁可以看部署進度。
+
+> 只有 `www/` 會被發佈，後端的 `Code.gs` 與開發腳本不會上線。
+>
+> 這個網址是公開的，但打開只會看到一個沒連到任何資料的空殼 ——
+> 地址存在你自己的試算表，鑰匙（網址＋密語）存在你手機裡。詳見下方「安全性」。
+
+### 方式 B：其他免費靜態空間
+
+不想用 GitHub Pages 的話，把 `www/` 資料夾丟到任一靜態網站服務也行：
+
+- **Cloudflare Pages** / **Netlify** / **Vercel** 都可以，拖曳 `www` 上傳即可
 - 例：Netlify 直接把 `www` 資料夾拖進 <https://app.netlify.com/drop>，幾秒就有網址
 
-拿到網址後在手機瀏覽器打開，即可使用。
-
-### 方式 B：本機測試（電腦上先看看）
+### 方式 C：本機測試（電腦上先看看）
 
 ```bash
 cd www

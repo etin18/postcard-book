@@ -1,0 +1,35 @@
+# 把 www/ 資料夾部署到 GitHub Pages
+# 每次推送到 main 就自動更新線上版本
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只跑一個部署，新的推送會取代進行中的
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true   # 第一次執行時自動開啟 Pages
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: www          # 只發佈 App 本體，不含後端程式與開發腳本
+      - id: deployment
+        uses: actions/deploy-pages@v4
