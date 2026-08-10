@@ -681,26 +681,28 @@ function detailHtml(f) {
     `</div>`;
 
   return `
-    ${addrBlock}
+    <div class="detail-lookup">
+      ${addrBlock}
 
-    <div class="detail-btns">
-      <button class="btn" type="button" data-copy2="${escapeHtml(f.personId)}">複製地址</button>
-      <button class="btn" type="button" data-edit="${escapeHtml(f.personId)}">編輯</button>
+      <div class="detail-btns">
+        <button class="btn" type="button" data-copy2="${escapeHtml(f.personId)}">複製地址</button>
+        <button class="btn" type="button" data-edit="${escapeHtml(f.personId)}">編輯</button>
+      </div>
+
+      ${sent.length ? `
+        <p class="sent-note">
+          寄過 ${sent.length} 張給他${lastSent ? ` · 最後一次 ${escapeHtml(fmtDate(lastSent.date))}` : ''}
+        </p>` : ''}
+
+      ${old.length ? `
+        <div class="history-old">
+          <p class="history-old__title">以前住過</p>
+          ${old.map((o) => `
+            <p class="history-old__item">
+              ${escapeHtml([o.address, o.city, o.country].filter(Boolean).join(', '))}
+            </p>`).join('')}
+        </div>` : ''}
     </div>
-
-    ${sent.length ? `
-      <p class="sent-note">
-        寄過 ${sent.length} 張給他${lastSent ? ` · 最後一次 ${escapeHtml(fmtDate(lastSent.date))}` : ''}
-      </p>` : ''}
-
-    ${old.length ? `
-      <div class="history-old">
-        <p class="history-old__title">以前住過</p>
-        ${old.map((o) => `
-          <p class="history-old__item">
-            ${escapeHtml([o.address, o.city, o.country].filter(Boolean).join(', '))}
-          </p>`).join('')}
-      </div>` : ''}
 
     <form class="sendform" id="send-form">
       <p class="sendform__title">寄一張給 ${escapeHtml(f.name)}</p>

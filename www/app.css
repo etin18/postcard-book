@@ -42,6 +42,12 @@
   --c-cream:     #f7ecba;
   --c-cream-ink: #8a6a15;
 
+  /* 展開後兩個區塊各自的底色：
+     查地址是水藍（跟通訊錄同一國），記一筆換成奶油色 ——
+     它們是兩件不同的事，同色會讓人以為只是同一段的延續 */
+  --zone-lookup: #e8f4f8;
+  --zone-log:    #fdf8e8;
+
   --danger:      #d4535a;
   --good:        #2f8f6b;
   --warn:        #b0791e;
@@ -84,6 +90,9 @@
   --c-mint-ink:  #8fdcc9;
   --c-cream:     #4d431f;
   --c-cream-ink: #e4d195;
+
+  --zone-lookup: #223a45;
+  --zone-log:    #2f2b1d;
 
   --danger:      #ef8a90;
   --good:        #4cbf9a;
@@ -368,15 +377,18 @@ ul { list-style: none; }
 /* ---------- 展開後的詳情 ---------- */
 
 .friend__detail {
-  padding: 2px 14px 16px;
   border-top: 1px dashed var(--border);
-  background: var(--surface-2);
 }
 .friend__detail[hidden] { display: none; }
 
+/* 上半：查地址 */
+.detail-lookup {
+  padding: 14px 14px 16px;
+  background: var(--zone-lookup);
+}
+
 /* 地址本體：抄寫的時候要一眼看完，字級刻意大一級 */
 .addr {
-  margin-top: 12px;
   padding: 13px 14px;
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -437,9 +449,10 @@ ul { list-style: none; }
 
 /* ---------- 展開後的寄信表單 ---------- */
 
+/* 下半：記一筆。換底色是為了跟上半的「查地址」分成兩件事 */
 .sendform {
-  margin-top: 14px;
-  padding-top: 14px;
+  padding: 16px 14px 18px;
+  background: var(--zone-log);
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
