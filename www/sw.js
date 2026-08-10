@@ -7,7 +7,7 @@
 
 // 改動 www/ 裡的檔案後記得把版號 +1，
 // 否則手機會一直吃舊快取，看不到新版
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE = `postcard-book-${VERSION}`;
 
 const SHELL = [

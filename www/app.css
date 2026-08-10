@@ -45,8 +45,9 @@
   /* 展開後兩個區塊各自的底色：
      查地址是水藍（跟通訊錄同一國），記一筆換成奶油色 ——
      它們是兩件不同的事，同色會讓人以為只是同一段的延續 */
-  --zone-lookup: #e8f4f8;
-  --zone-log:    #fdf8e8;
+  --zone-log:      #fdf8e8;
+  --zone-log-line: #f0e4c0;
+  --zone-log-ink:  #8a6a15;
 
   --danger:      #d4535a;
   --good:        #2f8f6b;
@@ -91,8 +92,9 @@
   --c-cream:     #4d431f;
   --c-cream-ink: #e4d195;
 
-  --zone-lookup: #223a45;
-  --zone-log:    #2f2b1d;
+  --zone-log:      #2f2b1d;
+  --zone-log-line: #443d26;
+  --zone-log-ink:  #d8c48a;
 
   --danger:      #ef8a90;
   --good:        #4cbf9a;
@@ -376,25 +378,46 @@ ul { list-style: none; }
 
 /* ---------- 展開後的詳情 ---------- */
 
+/* 展開區退成頁面底色，讓裡面兩張卡片浮出來 ——
+   「查地址」和「記一筆」靠卡片邊界和留白分開，
+   比兩塊色塊直接對切好看得多 */
 .friend__detail {
-  border-top: 1px dashed var(--border);
+  padding: 12px;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .friend__detail[hidden] { display: none; }
 
+/* 每個區塊的小標，統一長相 */
+.zone-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 11px;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: .03em;
+  color: var(--muted);
+}
+.zone-head svg { flex: none; }
+
 /* 上半：查地址 */
 .detail-lookup {
-  padding: 14px 14px 16px;
-  background: var(--zone-lookup);
-}
-
-/* 地址本體：抄寫的時候要一眼看完，字級刻意大一級 */
-.addr {
-  padding: 13px 14px;
+  padding: 14px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16.5px;
-  line-height: 1.65;
+  box-shadow: var(--shadow);
+}
+.detail-lookup .zone-head { color: var(--accent-deep); }
+
+/* 地址本體：抄寫的時候要一眼看完，字級刻意大一級。
+   外層已經是白卡片了，這裡不用再套一層框 */
+.addr {
+  font-size: 17px;
+  line-height: 1.7;
   white-space: pre-line;
   user-select: text;
   -webkit-user-select: text;
@@ -449,20 +472,20 @@ ul { list-style: none; }
 
 /* ---------- 展開後的寄信表單 ---------- */
 
-/* 下半：記一筆。換底色是為了跟上半的「查地址」分成兩件事 */
+/* 下半：記一筆。自己一張卡，底色換成奶油，跟上半是兩件事 */
 .sendform {
-  padding: 16px 14px 18px;
+  padding: 15px 14px 17px;
   background: var(--zone-log);
-  border-top: 1px solid var(--border);
+  border: 1px solid var(--zone-log-line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
-.sendform__title {
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--text-primary);
+.sendform .zone-head {
+  color: var(--zone-log-ink);
+  margin-bottom: 0;
 }
 
 /* 展開區本身是淡色底，輸入框再用同一個淡色就分不出邊界了 */

@@ -680,8 +680,23 @@ function detailHtml(f) {
     `<span class="addr__country">${escapeHtml(f.country)}</span>` +
     `</div>`;
 
+  const pinIcon = `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"
+            stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="2"/>
+    </svg>`;
+
+  const cardIcon = `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+      <path d="M13 10h5M13 14h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 6v12" stroke="currentColor" stroke-width="2"/>
+    </svg>`;
+
   return `
     <div class="detail-lookup">
+      <p class="zone-head">${pinIcon} 地址</p>
       ${addrBlock}
 
       <div class="detail-btns">
@@ -705,7 +720,7 @@ function detailHtml(f) {
     </div>
 
     <form class="sendform" id="send-form">
-      <p class="sendform__title">寄一張給 ${escapeHtml(f.name)}</p>
+      <p class="zone-head">${cardIcon} 記一張寄給 ${escapeHtml(f.name)}</p>
 
       <div class="field">
         <span class="field__label">從哪個國家寄</span>
