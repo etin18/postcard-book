@@ -118,6 +118,12 @@ const readCards = (page) =>
     await page.evaluate(() =>
       document.getElementById('friend-list').classList.contains('is-focused')));
 
+  // 國家不預設帶入 —— 換國家時自動帶入會安靜地記錯
+  check('國家欄預設留空', (await page.inputValue('#send-country')) === '');
+  await page.click('#send-country-quick [data-country]');
+  await page.waitForTimeout(200);
+  check('點了「最近寄過」才填入', (await page.inputValue('#send-country')) !== '');
+
   // 快選那排只反映輸入框的值，不能自己當一份狀態
   await page.fill('#send-country', 'Iceland');
   await page.waitForTimeout(200);

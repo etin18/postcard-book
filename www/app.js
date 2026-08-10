@@ -1028,9 +1028,9 @@ function bindSendForm(friend) {
   const form = $('send-form');
   if (!form) return;
 
-  // 上次寄出的國家通常還是這次的國家
-  const recent = knownCountries()[0];
-  if (recent) $('send-country').value = recent;
+  // 國家一律留空讓使用者自己決定 —— 自動帶入上次的國家，
+  // 在「已經換國家了」的時候會安靜地記錯，而那正是這個 App 最常見的情境。
+  // 想沿用上次的，點下面「最近寄過」那排即可。
 
   /** 快選那排只反映輸入框現在的值，不自己當一份狀態 */
   const syncCountryPick = () => {

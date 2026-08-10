@@ -452,6 +452,11 @@ ul { list-style: none; }
   color: var(--text-primary);
 }
 
+/* 展開區本身是淡色底，輸入框再用同一個淡色就分不出邊界了 */
+.sendform .input {
+  background: var(--surface-1);
+}
+
 /* 快選：輸入框才是主角，這排只是「懶得打字的話點這裡」。
    刻意做成一行小字而不是按鈕 —— 之前用大塊 chip，
    選完之後上下兩個地方顯示同一個值，看起來像被問了兩次。 */
