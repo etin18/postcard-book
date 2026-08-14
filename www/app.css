@@ -45,9 +45,13 @@
   /* 展開後兩個區塊各自的底色：
      查地址是水藍（跟通訊錄同一國），記一筆換成奶油色 ——
      它們是兩件不同的事，同色會讓人以為只是同一段的延續 */
-  --zone-log:      #fdf8e8;
-  --zone-log-line: #f0e4c0;
-  --zone-log-ink:  #8a6a15;
+  --zone-log:       #fdf8e8;
+  --zone-log-line:  #f0e4c0;
+  --zone-log-ink:   #8a6a15;
+  --zone-log-soft:  #f7edcf;   /* 區塊內的次要按鈕 */
+  --zone-log-btn:   #f2dc94;   /* 區塊內的主要按鈕 */
+  --zone-log-btn-line: #d9bf62;
+  --zone-log-btn-ink:  #4a3a0d;
 
   --danger:      #d4535a;
   --good:        #2f8f6b;
@@ -92,9 +96,13 @@
   --c-cream:     #4d431f;
   --c-cream-ink: #e4d195;
 
-  --zone-log:      #2f2b1d;
-  --zone-log-line: #443d26;
-  --zone-log-ink:  #d8c48a;
+  --zone-log:       #2f2b1d;
+  --zone-log-line:  #443d26;
+  --zone-log-ink:   #d8c48a;
+  --zone-log-soft:  #3a3423;
+  --zone-log-btn:   #c9a94e;
+  --zone-log-btn-line: #a88a35;
+  --zone-log-btn-ink:  #241d0a;
 
   --danger:      #ef8a90;
   --good:        #4cbf9a;
@@ -491,6 +499,19 @@ ul { list-style: none; }
 /* 展開區本身是淡色底，輸入框再用同一個淡色就分不出邊界了 */
 .sendform .input {
   background: var(--surface-1);
+}
+
+/* 這張卡是奶油色的，裡面的按鈕也得跟著換色，
+   不然水藍按鈕看起來像從別的區塊掉進來 */
+.sendform .photo-btn {
+  background: var(--zone-log-soft);
+  border-color: var(--zone-log-line);
+  color: var(--zone-log-ink);
+}
+.sendform .btn--submit {
+  background: var(--zone-log-btn);
+  border-color: var(--zone-log-btn-line);
+  color: var(--zone-log-btn-ink);
 }
 
 /* 快選：輸入框才是主角，這排只是「懶得打字的話點這裡」。
