@@ -43,15 +43,15 @@
   --c-cream-ink: #8a6a15;
 
   /* 展開後兩個區塊各自的底色：
-     查地址是水藍（跟通訊錄同一國），記一筆換成奶油色 ——
+     查地址是水藍（跟通訊錄同一國），記一筆換成黃綠 ——
      它們是兩件不同的事，同色會讓人以為只是同一段的延續 */
-  --zone-log:       #fdf8e8;
-  --zone-log-line:  #f0e4c0;
-  --zone-log-ink:   #8a6a15;
-  --zone-log-soft:  #f7edcf;   /* 區塊內的次要按鈕 */
-  --zone-log-btn:   #f2dc94;   /* 區塊內的主要按鈕 */
-  --zone-log-btn-line: #d9bf62;
-  --zone-log-btn-ink:  #4a3a0d;
+  --zone-log:       #e9f6d2;
+  --zone-log-line:  #c4ebab;
+  --zone-log-ink:   #3b6925;
+  --zone-log-soft:  #f3fae6;   /* 區塊內的次要按鈕 */
+  --zone-log-btn:   #f2ff8f;   /* 區塊內的主要按鈕 */
+  --zone-log-btn-line: #c2d46c;
+  --zone-log-btn-ink:  #3b6925;
 
   --danger:      #d4535a;
   --good:        #2f8f6b;
@@ -96,13 +96,13 @@
   --c-cream:     #4d431f;
   --c-cream-ink: #e4d195;
 
-  --zone-log:       #2f2b1d;
-  --zone-log-line:  #443d26;
-  --zone-log-ink:   #d8c48a;
-  --zone-log-soft:  #3a3423;
-  --zone-log-btn:   #c9a94e;
-  --zone-log-btn-line: #a88a35;
-  --zone-log-btn-ink:  #241d0a;
+  --zone-log:       #1e2a18;
+  --zone-log-line:  #33452a;
+  --zone-log-ink:   #a8d98a;
+  --zone-log-soft:  #26331f;
+  --zone-log-btn:   #b8d96a;
+  --zone-log-btn-line: #93b348;
+  --zone-log-btn-ink:  #16220f;
 
   --danger:      #ef8a90;
   --good:        #4cbf9a;
@@ -480,7 +480,7 @@ ul { list-style: none; }
 
 /* ---------- 展開後的寄信表單 ---------- */
 
-/* 下半：記一筆。自己一張卡，底色換成奶油，跟上半是兩件事 */
+/* 下半：記一筆。自己一張卡，底色換成黃綠，跟上半是兩件事 */
 .sendform {
   padding: 15px 14px 17px;
   background: var(--zone-log);
@@ -490,6 +490,23 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   gap: 14px;
+
+  /* 這張卡是暖色的，把介面用的文字色整批換成暖調 ——
+     藍灰的標籤放在黃綠底上像是別人家的東西。
+     直接覆寫變數，底下所有元件就一起跟著換，不用逐條改。 */
+  --text-primary:   #2e2718;
+  --text-secondary: #286b59;
+  --muted:          #387a48;
+  --accent-deep:    #488a15;
+  --border:         rgba(74, 58, 13, 0.12);
+}
+
+:root[data-theme="dark"] .sendform {
+  --text-primary:   #eef7e4;
+  --text-secondary: #9fd4bd;
+  --muted:          #86bd94;
+  --accent-deep:    #a8d96a;
+  --border:         rgba(238, 247, 228, 0.14);
 }
 .sendform .zone-head {
   color: var(--zone-log-ink);
@@ -501,7 +518,7 @@ ul { list-style: none; }
   background: var(--surface-1);
 }
 
-/* 這張卡是奶油色的，裡面的按鈕也得跟著換色，
+/* 這張卡是黃綠色的，裡面的按鈕也得跟著換色，
    不然水藍按鈕看起來像從別的區塊掉進來 */
 .sendform .photo-btn {
   background: var(--zone-log-soft);
@@ -693,12 +710,18 @@ ul { list-style: none; }
 }
 .pcard:active { background: var(--surface-2); }
 
+/* 固定 4:3 橫向。原本沒設高度會被 stretch 拉成直長條，
+   明信片本來就是橫的，直的縮圖看起來像被切過 */
 .pcard__thumb {
-  width: 74px;
+  width: 96px;
+  height: 72px;
   flex: none;
+  align-self: center;
+  margin-left: 12px;
   object-fit: cover;
+  border-radius: 10px;
   background: var(--surface-2);
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
 }
 
 .pcard__body {

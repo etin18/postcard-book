@@ -720,7 +720,7 @@ function detailHtml(f) {
     </div>
 
     <form class="sendform" id="send-form">
-      <p class="zone-head">${cardIcon} 記一張寄給 ${escapeHtml(f.name)}</p>
+      <p class="zone-head">${cardIcon} 這次寄給 ${escapeHtml(f.name)} 的明信片</p>
 
       <div class="field">
         <span class="field__label">從哪個國家寄</span>
@@ -1768,9 +1768,22 @@ function init() {
   else refreshSyncChip();
 
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
+    const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+
+    if (isLocal) {
+      // 本機開發根本不需要 Service Worker，還會拿舊快取蓋掉剛改好的檔案。
+      // 連同以前註冊過的一起註銷，免得改了程式卻看不到。
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => regs.forEach((r) => r.unregister()))
+        .catch(() => {});
+      caches.keys()
+        .then((keys) => keys.forEach((k) => caches.delete(k)))
+        .catch(() => {});
+    } else {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
   }
 }
 

@@ -7,7 +7,7 @@
 
 // 改動 www/ 裡的檔案後記得把版號 +1，
 // 否則手機會一直吃舊快取，看不到新版
-const VERSION = 'v9';
+const VERSION = 'v11';
 const CACHE = `postcard-book-${VERSION}`;
 
 // 本機開發時完全不走快取：改了檔案重整就要看得到，
