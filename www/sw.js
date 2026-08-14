@@ -7,8 +7,13 @@
 
 // 改動 www/ 裡的檔案後記得把版號 +1，
 // 否則手機會一直吃舊快取，看不到新版
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = `postcard-book-${VERSION}`;
+
+// 本機開發時完全不走快取：改了檔案重整就要看得到，
+// 不然每次都得手動清快取（而 Cmd+Shift+R 對 SW 控制的子資源不一定有效）。
+// 線上版不受影響，離線能力照舊。
+const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(self.location.hostname);
 
 const SHELL = [
   './',
@@ -22,6 +27,7 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
+  if (IS_LOCAL) return void self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE)
       .then((cache) => cache.addAll(SHELL))
@@ -42,6 +48,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
+  if (IS_LOCAL) return;   // 本機一律走網路
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
