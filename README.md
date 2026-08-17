@@ -109,11 +109,15 @@ postcard-app/
 ### 方式 C：本機測試（電腦上先看看）
 
 ```bash
-cd www
-python3 -m http.server 8788
+python3 scripts/serve.py
 ```
 
 瀏覽器開 <http://localhost:8788>。（本機 localhost 相機、Service Worker 也能運作。）
+
+這支 server 會送 `Cache-Control: no-store`，改了檔案重整就看得到。
+用 `python3 -m http.server` 也開得起來，但瀏覽器可能只更新一部分檔案 ——
+畫面上出現新按鈕、點下去卻沒反應，就是 `index.html` 換了新的而 `app.js` 還是舊的，
+按 `Cmd + Shift + R` 硬重整即可。
 
 ---
 
@@ -220,7 +224,7 @@ App 只有兩個分頁。
 node scripts/make-icons.js      # 重新產生 PWA 圖示
 
 # 以下都需要本機 server 開在 8788
-cd www && python3 -m http.server 8788 &
+python3 scripts/serve.py &
 
 PW_CORE=<playwright-core 路徑> node scripts/screenshot.js    # 版面實測
 PW_CORE=<playwright-core 路徑> node scripts/test-flows.js    # 邊界流程
