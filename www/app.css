@@ -1044,6 +1044,8 @@ input[list] { appearance: none; }
   max-height: 92dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* 捲到頂再往下拉時，不要連帶把整頁一起橡皮筋 —— 那個位移要留給下拉關閉 */
+  overscroll-behavior: contain;
   background: var(--surface-1);
   border-radius: 20px 20px 0 0;
   box-shadow: var(--shadow-lift);

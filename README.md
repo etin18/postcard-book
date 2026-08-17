@@ -226,9 +226,10 @@ node scripts/make-icons.js      # 重新產生 PWA 圖示
 # 以下都需要本機 server 開在 8788
 python3 scripts/serve.py &
 
-PW_CORE=<playwright-core 路徑> node scripts/screenshot.js    # 版面實測
-PW_CORE=<playwright-core 路徑> node scripts/test-flows.js    # 邊界流程
-PW_CORE=<playwright-core 路徑> node scripts/test-photos.js   # 換手機搬照片
+PW_CORE=<playwright-core 路徑> node scripts/screenshot.js       # 版面實測
+PW_CORE=<playwright-core 路徑> node scripts/test-flows.js       # 邊界流程
+PW_CORE=<playwright-core 路徑> node scripts/test-photos.js      # 換手機搬照片
+PW_CORE=<playwright-core 路徑> node scripts/test-sheet-drag.js  # 下拉關閉手勢
 ```
 
 `screenshot.js` 會灌入假資料、走完主要流程（含實際記下一張明信片、套用篩選），
@@ -236,7 +237,8 @@ PW_CORE=<playwright-core 路徑> node scripts/test-photos.js   # 換手機搬照
 
 `test-flows.js` 顧的是搬家、刪除朋友這類資料錯了很難救的路徑；
 `test-photos.js` 走一遍匯出匯入（含電腦重壓過的 zip、重複匯入、選到壞檔），
-照片只存在本機，這條路徑壞掉是真的救不回來。
+照片只存在本機，這條路徑壞掉是真的救不回來；
+`test-sheet-drag.js` 用 CDP 送真的觸控事件，測下拉關閉會不會把捲動一起搶走。
 
 改完 `www/` 裡的檔案，記得把 `sw.js` 的 `VERSION` 加一，否則手機會一直吃舊快取。
 

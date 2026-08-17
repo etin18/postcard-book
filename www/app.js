@@ -1467,21 +1467,113 @@ function toggleReceived(cardId) {
    ========================================================================== */
 
 function openSheet(id) {
+  const el = $(id);
+  resetSheetDrag(el);          // 上次拖到一半留下的位移，開之前先歸零
   $('scrim').hidden = false;
-  $(id).hidden = false;
+  el.hidden = false;
   requestAnimationFrame(() => {
     $('scrim').classList.add('is-open');
-    $(id).classList.add('is-open');
+    el.classList.add('is-open');
   });
 }
 
 function closeSheet(id) {
-  $(id).classList.remove('is-open');
+  const el = $(id);
+  // 先把 transition 還給 CSS，再清掉手動位移：
+  // 這樣不管是用按的還是拉到一半放手，都從當下位置平順滑下去
+  el.style.transition = '';
+  el.classList.remove('is-open');
+  el.style.transform = '';
+  $('scrim').style.opacity = '';
   $('scrim').classList.remove('is-open');
   setTimeout(() => {
-    $(id).hidden = true;
+    el.hidden = true;
     $('scrim').hidden = true;
   }, 280);
+}
+
+function resetSheetDrag(el) {
+  el.style.transition = '';
+  el.style.transform = '';
+  $('scrim').style.opacity = '';
+}
+
+/* ---------- 往下拉關掉 ---------- */
+
+/*
+  頂端那條橫槓，手機上直覺就是往下一撥把它收起來。
+
+  只在「內容已經捲到最上面」或「從握把、標題列起手」時才接管手勢，
+  不然使用者想往下看表單後半段，反而會把視窗拉掉。
+*/
+
+const SHEET_CLOSE_PX = 110;   // 拉超過這個距離放手就關
+const SHEET_FLING = 0.55;     // 或者甩得夠快（px/ms），距離不夠也關
+
+function bindSheetDrag(id) {
+  const sheet = $(id);
+  let startY = 0;
+  let dy = 0;
+  let dragging = false;
+  let settled = false;   // 這一次觸控算拖 sheet 還是捲內容，判定過就不再改
+  let vy = 0;            // 最後一段的速度
+  let lastY = 0;
+  let lastT = 0;
+
+  const inside = (t, sel) => t instanceof Element && !!t.closest(sel);
+
+  sheet.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startY = e.touches[0].clientY;
+    lastY = startY;
+    lastT = e.timeStamp;
+    dy = 0;
+    vy = 0;
+    dragging = false;
+    // 從輸入框起手不接管，不然選字和 textarea 自己的捲動都會被吃掉
+    settled = inside(e.target, 'input, textarea, select');
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', (e) => {
+    if (settled && !dragging) return;
+    const y = e.touches[0].clientY;
+    const delta = y - startY;
+
+    if (!dragging) {
+      if (Math.abs(delta) < 6) return;   // 還看不出要往哪
+      settled = true;
+      const canDrag = delta > 0
+        && (inside(e.target, '.sheet__grip, .sheet__head') || sheet.scrollTop <= 0);
+      if (!canDrag) return;              // 是要捲內容，讓瀏覽器自己處理
+      dragging = true;
+      sheet.style.transition = 'none';
+    }
+
+    // 只看最後一段的速度。用整段平均的話，「先慢慢拉一點、再往下一甩」
+    // 會被前面的慢動作稀釋，甩了也關不掉
+    const dt = e.timeStamp - lastT;
+    if (dt >= 8) {                       // 取樣太密就先攢著，不然雜訊蓋過訊號
+      vy = (y - lastY) / dt;
+      lastY = y;
+      lastT = e.timeStamp;
+    }
+
+    dy = Math.max(0, delta);
+    e.preventDefault();                  // 攔下捲動，位置改由我們跟手
+    sheet.style.transform = `translateY(${dy}px)`;
+    $('scrim').style.opacity = String(Math.max(0, 1 - dy / (sheet.offsetHeight || 1)));
+  }, { passive: false });
+
+  const release = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    // 拉到一半停住再放手就不算甩，那時只看拉了多遠
+    const flung = e.timeStamp - lastT < 120 && vy > SHEET_FLING;
+    if (dy > SHEET_CLOSE_PX || flung) closeSheet(id);
+    else resetSheetDrag(sheet);          // 沒過關，彈回原位
+  };
+  sheet.addEventListener('touchend', release);
+  sheet.addEventListener('touchcancel', release);
 }
 
 function anyOpenSheet() {
@@ -1940,6 +2032,8 @@ function bindEvents() {
     const open = anyOpenSheet();
     if (open) closeSheet(open);
   });
+  bindSheetDrag('friend-sheet');
+  bindSheetDrag('card-sheet');
   $('viewer-close').addEventListener('click', closeViewer);
   $('viewer').addEventListener('click', (e) => {
     if (e.target === $('viewer')) closeViewer();
