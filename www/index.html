@@ -175,8 +175,16 @@
         <p class="card__sub">照片只存在這支手機，不會上傳到試算表</p>
         <div class="kv"><span>已存照片</span><strong id="photo-count">0 張</strong></div>
         <div class="kv"><span>佔用空間</span><strong id="photo-size">0 MB</strong></div>
-        <p class="hint hint--warn">清除瀏覽器資料或換手機，照片會消失（地址與寄信紀錄在試算表裡不受影響）。</p>
-        <button class="btn btn--danger" id="btn-clear-photos" type="button">清除全部照片</button>
+        <p class="hint hint--warn">清除瀏覽器資料或換手機，照片會消失（地址與寄信紀錄在試算表裡不受影響）。<strong>換手機前先按「匯出照片」</strong>，把檔案傳到新手機再匯入。</p>
+        <p class="hint hint--warn" id="photo-missing" hidden></p>
+        <div class="row-btns">
+          <button class="btn" id="btn-export-photos" type="button">匯出照片</button>
+          <button class="btn" id="btn-import-photos" type="button">匯入照片</button>
+        </div>
+        <input type="file" id="import-photos-file" accept=".zip,application/zip" hidden>
+        <div class="row-btns">
+          <button class="btn btn--danger" id="btn-clear-photos" type="button">清除全部照片</button>
+        </div>
       </div>
 
       <div class="card">

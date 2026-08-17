@@ -904,8 +904,13 @@ async function hydrateThumbs(cards) {
     const img = document.querySelector(`[data-thumb="${CSS.escape(c.id)}"]`);
     if (!img) continue;
     const url = await getThumbUrl(c.id);
-    if (url) img.src = url;
-    else img.remove(); // 照片在別支手機拍的，這台沒有
+    if (url) { img.src = url; continue; }
+
+    // 照片在別支手機拍的，這台沒有。留個位子講清楚，不然看起來像憑空不見
+    const slot = document.createElement('div');
+    slot.className = 'pcard__thumb pcard__thumb--missing';
+    slot.innerHTML = '<span>照片在</span><span>別支手機</span>';
+    img.replaceWith(slot);
   }
 }
 
@@ -963,6 +968,18 @@ async function renderSettings() {
   $('photo-size').textContent = bytes > 0
     ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
     : '0 MB';
+
+  // hasPhoto 是從試算表同步來的，本機卻沒圖，就代表照片留在別支手機
+  const stored = new Set(photos.map((p) => p.id));
+  const missing = state.cards.filter(
+    (c) => c._op !== 'delete' && c.hasPhoto && !stored.has(c.id)
+  ).length;
+  const el = $('photo-missing');
+  el.hidden = missing === 0;
+  if (missing) {
+    el.textContent = `另有 ${missing} 張照片在別支手機上。`
+      + '到那支手機按「匯出照片」，把檔案傳過來再匯入就會回來。';
+  }
 }
 
 /* ==========================================================================
@@ -1477,19 +1494,22 @@ function anyOpenSheet() {
    匯出
    ========================================================================== */
 
-function downloadCsv(filename, rows) {
-  const csv = rows
-    .map((r) => r.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\r\n');
-
-  // 加 BOM，Excel 開中文才不會變亂碼
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadCsv(filename, rows) {
+  const csv = rows
+    .map((r) => r.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\r\n');
+
+  // 加 BOM，Excel 開中文才不會變亂碼
+  downloadBlob(filename, new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
 }
 
 function exportFriends() {
@@ -1508,6 +1528,277 @@ function exportCards() {
   }
   if (rows.length === 1) return toast('沒有紀錄可以匯出');
   downloadCsv(`寄信紀錄_${todayStr()}.csv`, rows);
+}
+
+/* ==========================================================================
+   ZIP（store 模式，不壓縮）
+
+   照片搬家用的容器。JPEG 已經壓過了，再 deflate 一次只是白費 CPU，
+   所以一律用 store；自己寫這幾十行，就不必為了換手機引進外部函式庫。
+   ========================================================================== */
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+/** zip 沿用 1980 年代的 MS-DOS 時間格式：日期時間各擠在 16 bits 裡 */
+function dosDateTime(d) {
+  return {
+    time: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1),
+    date: ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+  };
+}
+
+/**
+ * entries: [{ name, blob }] → 一個 zip Blob。
+ * 檔名一律用 ASCII（UUID 跟 manifest.json），免得踩到編碼旗標的坑。
+ */
+async function makeZip(entries) {
+  const enc = new TextEncoder();
+  const { time, date } = dosDateTime(new Date());
+  const parts = [];    // 檔案本體，依序串起來
+  const central = [];  // 中央目錄，全部檔案之後才接上
+  let offset = 0;
+
+  for (const e of entries) {
+    const name = enc.encode(e.name);
+    const bytes = new Uint8Array(await e.blob.arrayBuffer());
+    const crc = crc32(bytes);
+    const size = bytes.length;
+
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true);  // 本地檔頭簽章
+    local.setUint16(4, 20, true);          // 解壓需要的版本
+    local.setUint16(6, 0, true);           // 旗標
+    local.setUint16(8, 0, true);           // 0 = store，不壓縮
+    local.setUint16(10, time, true);
+    local.setUint16(12, date, true);
+    local.setUint32(14, crc, true);
+    local.setUint32(18, size, true);       // 壓縮後大小（store 兩者相同）
+    local.setUint32(22, size, true);       // 原始大小
+    local.setUint16(26, name.length, true);
+    local.setUint16(28, 0, true);          // extra field 長度
+    parts.push(local.buffer, name, e.blob);
+
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true);     // 中央目錄簽章
+    cd.setUint16(4, 20, true);             // 建立者版本
+    cd.setUint16(6, 20, true);
+    cd.setUint16(8, 0, true);
+    cd.setUint16(10, 0, true);
+    cd.setUint16(12, time, true);
+    cd.setUint16(14, date, true);
+    cd.setUint32(16, crc, true);
+    cd.setUint32(20, size, true);
+    cd.setUint32(24, size, true);
+    cd.setUint16(28, name.length, true);
+    cd.setUint32(42, offset, true);        // 這個檔的本地檔頭在哪
+    central.push(cd.buffer, name);
+
+    offset += 30 + name.length + size;
+  }
+
+  const cdSize = central.reduce((n, b) => n + b.byteLength, 0);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true);
+  eocd.setUint16(8, entries.length, true);
+  eocd.setUint16(10, entries.length, true);
+  eocd.setUint32(12, cdSize, true);
+  eocd.setUint32(16, offset, true);        // 中央目錄的起點
+
+  return new Blob([...parts, ...central, eocd.buffer], { type: 'application/zip' });
+}
+
+async function inflateRaw(blob) {
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('這個瀏覽器無法解開壓縮過的 zip，請用原本匯出的檔案');
+  }
+  const stream = blob.stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Response(stream).blob();
+}
+
+/**
+ * 解 zip → Map<檔名, Blob>。
+ * 從中央目錄讀而不是掃檔頭，這樣別人用電腦重新壓過的檔也吃得下。
+ */
+async function readZip(blob) {
+  const tailSize = Math.min(blob.size, 65557);  // EOCD 22 bytes + 註解上限 65535
+  const tail = new DataView(await blob.slice(blob.size - tailSize).arrayBuffer());
+
+  let eocd = -1;
+  for (let i = tail.byteLength - 22; i >= 0; i--) {
+    if (tail.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('這不是有效的 zip 檔');
+
+  const count = tail.getUint16(eocd + 10, true);
+  const cdSize = tail.getUint32(eocd + 12, true);
+  const cdOffset = tail.getUint32(eocd + 16, true);
+  const cd = new DataView(await blob.slice(cdOffset, cdOffset + cdSize).arrayBuffer());
+  const dec = new TextDecoder();
+  const out = new Map();
+
+  let p = 0;
+  for (let i = 0; i < count; i++) {
+    if (p + 46 > cd.byteLength || cd.getUint32(p, true) !== 0x02014b50) break;
+    const method = cd.getUint16(p + 10, true);
+    const size = cd.getUint32(p + 20, true);
+    const nameLen = cd.getUint16(p + 28, true);
+    const extraLen = cd.getUint16(p + 30, true);
+    const commentLen = cd.getUint16(p + 32, true);
+    const localOffset = cd.getUint32(p + 42, true);
+    const name = dec.decode(new Uint8Array(cd.buffer, p + 46, nameLen));
+    p += 46 + nameLen + extraLen + commentLen;
+
+    if (name.endsWith('/')) continue;  // 目錄項目沒有內容
+
+    // 本地檔頭的 extra field 長度可能跟中央目錄不一樣，要各讀各的
+    const lh = new DataView(await blob.slice(localOffset, localOffset + 30).arrayBuffer());
+    const start = localOffset + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const data = blob.slice(start, start + size);
+
+    if (method === 0) out.set(name, data);
+    else if (method === 8) out.set(name, await inflateRaw(data));
+    else throw new Error(`不支援的壓縮方式（${method}）`);
+  }
+  return out;
+}
+
+/* ==========================================================================
+   照片搬家
+   ========================================================================== */
+
+const PHOTO_ZIP_VERSION = 1;
+
+/** slice 只是換個標籤，不會複製底層資料 */
+const asJpeg = (b) => (b.type === 'image/jpeg' ? b : b.slice(0, b.size, 'image/jpeg'));
+
+/** 照片在 IndexedDB 裡就是以明信片 id 當 key，檔名沿用 id，匯入時自然對得回去 */
+async function exportPhotos() {
+  const photos = (await PhotoDB.all()).filter((p) => p.value);
+  if (!photos.length) return toast('這支手機還沒有照片');
+
+  const btn = $('btn-export-photos');
+  btn.disabled = true;
+  btn.textContent = '打包中…';
+  try {
+    const cardById = new Map(state.cards.map((c) => [c.id, c]));
+    const entries = [];
+    const items = [];
+
+    for (const { id, value } of photos) {
+      if (value.full) entries.push({ name: `photos/${id}.jpg`, blob: value.full });
+      if (value.thumb) entries.push({ name: `photos/${id}.thumb.jpg`, blob: value.thumb });
+
+      const c = cardById.get(id);
+      items.push({
+        id,
+        date: c ? c.date : '',
+        friendName: c ? c.friendName : '',
+        country: c ? c.country : '',
+        note: c ? c.note : '',
+      });
+    }
+
+    // 對照表：萬一哪天試算表出事，光看這個檔也知道哪張照片是寄給誰的
+    const manifest = {
+      app: 'postcard-book',
+      version: PHOTO_ZIP_VERSION,
+      exportedAt: new Date().toISOString(),
+      count: items.length,
+      photos: items,
+    };
+    entries.push({
+      name: 'manifest.json',
+      blob: new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' }),
+    });
+
+    downloadBlob(`明信片照片_${todayStr()}.zip`, await makeZip(entries));
+    toast(`已匯出 ${items.length} 張照片`);
+  } catch (err) {
+    toast(`匯出失敗：${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '匯出照片';
+  }
+}
+
+/** 合併而不是取代：這支手機已經有的照片留著，同 id 才覆蓋 */
+async function importPhotos(file) {
+  const btn = $('btn-import-photos');
+  btn.disabled = true;
+  btn.textContent = '匯入中…';
+  try {
+    const files = await readZip(file);
+
+    // 只認檔名不管路徑，別人用電腦解開再壓、多包一層資料夾也還原得回來
+    const byName = new Map();
+    for (const [path, blob] of files) {
+      if (path.startsWith('__MACOSX/')) continue;
+      const base = path.split('/').pop();
+      if (base) byName.set(base, blob);
+    }
+
+    const ids = new Set();
+    for (const base of byName.keys()) {
+      const m = base.match(/^(.+?)(\.thumb)?\.jpg$/i);
+      if (m) ids.add(m[1]);
+    }
+    if (!ids.size) throw new Error('檔案裡找不到照片');
+
+    const cardById = new Map(state.cards.map((c) => [c.id, c]));
+    let added = 0;
+    let orphans = 0;
+
+    for (const id of ids) {
+      let full = byName.get(`${id}.jpg`);
+      let thumb = byName.get(`${id}.thumb.jpg`);
+      if (!full && !thumb) continue;
+
+      // 從 zip 切出來的 Blob 沒有 MIME，補回 image/jpeg；
+      // 少了它，blob: 網址丟進 <img> 有些瀏覽器不肯畫
+      if (full) full = asJpeg(full);
+      if (thumb) thumb = asJpeg(thumb);
+      // 縮圖漏了就從主圖重做一張，不然清單上會空一格
+      if (!thumb) thumb = await compressImage(full, 240, 0.7);
+      await PhotoDB.put(id, { full: full || thumb, thumb });
+      forgetThumb(id);
+      added++;
+
+      const c = cardById.get(id);
+      if (!c) {
+        orphans++;                       // 紀錄還沒同步下來，照片先收著
+      } else if (!c.hasPhoto) {
+        c.hasPhoto = true;
+        if (!c._op) c._op = 'update';
+      }
+    }
+
+    saveLocal();
+    render();
+    await renderSettings();
+
+    if (!added) toast('沒有可以匯入的照片');
+    else if (orphans) toast(`已匯入 ${added} 張，其中 ${orphans} 張等同步後才會顯示`);
+    else toast(`已匯入 ${added} 張照片`);
+  } catch (err) {
+    toast(`匯入失敗：${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '匯入照片';
+  }
 }
 
 /* ==========================================================================
@@ -1706,6 +1997,14 @@ function bindEvents() {
 
   $('btn-export-friends').addEventListener('click', exportFriends);
   $('btn-export-cards').addEventListener('click', exportCards);
+
+  $('btn-export-photos').addEventListener('click', exportPhotos);
+  $('btn-import-photos').addEventListener('click', () => $('import-photos-file').click());
+  $('import-photos-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';   // 清掉才能連選同一個檔兩次
+    if (file) await importPhotos(file);
+  });
 
   // 外觀
   $('theme-chips').addEventListener('click', (e) => {
